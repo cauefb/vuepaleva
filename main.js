@@ -63,7 +63,25 @@ const app = Vue.createApp({
         console.error('Erro ao buscar detalhes do pedido:', error);
       }
     },
-   
+    // Aceitar pedido
+    async acceptOrder(orderCode) {
+        try {
+          let response = await fetch(
+            `${URL}/${ESTABLISHMENT_CODE}/orders/${orderCode}/preparing`,
+            { method: 'PATCH' }
+          );
+  
+          if (response.ok) {
+            alert('Pedido aceito com sucesso!');
+            this.getOrders(); // Atualiza a lista de pedidos
+            this.closeOrderDetails(); // Fecha o modaldarklabz
+          } else {
+            alert('Erro ao aceitar pedido. Tente novamente.');
+          }
+        } catch (error) {
+          console.error('Erro ao aceitar pedido:', error);
+        }
+      },
     // Fechar o modal de detalhes
     closeOrderDetails() {
       this.selectedOrder = null;
