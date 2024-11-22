@@ -17,14 +17,15 @@ const app = Vue.createApp({
     return {
       orders: [], // Lista de pedidos
       selectedOrder: null, // Detalhes do pedido selecionado
+      filterStatus: 'pending_kitchen', // Filtro de status
     };
   },
   methods: {
-    // Buscar pedidos pendentes
+    // Buscar pedidos com base no status selecionado
     async getOrders() {
       try {
         let response = await fetch(
-          `${URL}/${ESTABLISHMENT_CODE}/orders?status=pending_kitchen`
+          `${URL}/${ESTABLISHMENT_CODE}/orders?status=${this.filterStatus}`
         );
         let data = await response.json();
 
@@ -55,7 +56,6 @@ const app = Vue.createApp({
           items: data.items.map((item) => ({
             name: item.name,
             description: item.description,
-            observation: item.observation,
             quantity: item.quantity,
           })),
         };
@@ -65,26 +65,50 @@ const app = Vue.createApp({
     },
     // Aceitar pedido
     async acceptOrder(orderCode) {
+      try {
+        let response = await fetch(
+          `${URL}/${ESTABLISHMENT_CODE}/orders/${orderCode}/accept`,
+          { method: 'PATCH' }
+        );
+        console.log(response)
+        if (response.ok) {
+          alert('Pedido aceito com sucesso!');
+          this.getOrders(); // Atualiza a lista de pedidos
+          this.closeOrderDetails(); // Fecha o modal
+        } else {
+          alert('Erro ao aceitar pedido. Tente novamente.');
+        }
+      } catch (error) {
+        console.error('Erro ao aceitar pedido:', error);
+      }
+    },
+    // Aceitar pedido
+    async readytOrder(orderCode) {
         try {
           let response = await fetch(
-            `${URL}/${ESTABLISHMENT_CODE}/orders/${orderCode}/preparing`,
+            `${URL}/${ESTABLISHMENT_CODE}/orders/${orderCode}/ready`,
             { method: 'PATCH' }
           );
-  
+          console.log(response)
           if (response.ok) {
-            alert('Pedido aceito com sucesso!');
+            alert('Pedido concluído sucesso!');
             this.getOrders(); // Atualiza a lista de pedidos
-            this.closeOrderDetails(); // Fecha o modaldarklabz
+            this.closeOrderDetails(); // Fecha o modal
           } else {
-            alert('Erro ao aceitar pedido. Tente novamente.');
+            alert('Erro ao concluír pedido. Tente novamente.');
           }
         } catch (error) {
-          console.error('Erro ao aceitar pedido:', error);
+          console.error('Erro ao concluír pedido.:', error);
         }
       },
     // Fechar o modal de detalhes
     closeOrderDetails() {
       this.selectedOrder = null;
+    },
+    // Atualizar filtro e buscar pedidos
+    updateFilter(event) {
+      this.filterStatus = event.target.value;
+      this.getOrders();
     },
   },
   mounted() {
